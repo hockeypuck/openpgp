@@ -23,9 +23,10 @@ import (
 	"io"
 	"testing"
 
+	gc "gopkg.in/check.v1"
+
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
-	gc "gopkg.in/check.v1"
 )
 
 func Test(t *testing.T) { gc.TestingT(t) }

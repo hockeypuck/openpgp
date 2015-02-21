@@ -15,7 +15,13 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package openpgp supports processing OpenPGP public key material.
+// Package `openpgp` provides OpenPGP packet processing for keyservers. It is
+// intended to support storage, retrieval, and non-authoritative verification
+// of signed key material and certifications.
+//
+// import "gopkg.in/hockeypuck/openpgp.v0"
+//
+
 package openpgp
 
 import (

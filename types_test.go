@@ -19,12 +19,7 @@ package openpgp
 
 import (
 	gc "gopkg.in/check.v1"
-	log "gopkg.in/hockeypuck/logrus.v0"
 )
-
-func init() {
-	log.SetLevel(log.DebugLevel)
-}
 
 type TypesSuite struct{}
 

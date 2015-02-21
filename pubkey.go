@@ -27,8 +27,6 @@ import (
 
 	"golang.org/x/crypto/openpgp/packet"
 	"gopkg.in/errgo.v1"
-
-	"github.com/hockeypuck/hockeypuck/util"
 )
 
 type publicKeyPacket struct {
@@ -76,19 +74,19 @@ func algoCode(algo int) string {
 }
 
 func (pk *publicKeyPacket) QualifiedFingerprint() string {
-	return fmt.Sprintf("%s%d/%s", algoCode(pk.Algorithm), pk.BitLen, util.Reverse(pk.RFingerprint))
+	return fmt.Sprintf("%s%d/%s", algoCode(pk.Algorithm), pk.BitLen, Reverse(pk.RFingerprint))
 }
 
 func (pk *publicKeyPacket) ShortID() string {
-	return util.Reverse(pk.RShortID)
+	return Reverse(pk.RShortID)
 }
 
 func (pk *publicKeyPacket) KeyID() string {
-	return util.Reverse(pk.RKeyID)
+	return Reverse(pk.RKeyID)
 }
 
 func (pk *publicKeyPacket) Fingerprint() string {
-	return util.Reverse(pk.RFingerprint)
+	return Reverse(pk.RFingerprint)
 }
 
 // appendSignature implements signable.
@@ -157,7 +155,7 @@ func (pkp *publicKeyPacket) setUnsupported(op *packet.OpaquePacket) error {
 	h.Write([]byte{0x99, byte(len(op.Contents) >> 8), byte(len(op.Contents))})
 	h.Write(op.Contents)
 	fpr := hex.EncodeToString(h.Sum(nil))
-	pkp.UUID = util.Reverse(fpr)
+	pkp.UUID = Reverse(fpr)
 	return pkp.setV4IDs(pkp.UUID)
 }
 
@@ -172,7 +170,7 @@ func (pkp *publicKeyPacket) setPublicKey(pk *packet.PublicKey) error {
 	if err != nil {
 		return errgo.Mask(err)
 	}
-	pkp.RFingerprint = util.Reverse(fingerprint)
+	pkp.RFingerprint = Reverse(fingerprint)
 	pkp.UUID = pkp.RFingerprint
 	err = pkp.setV4IDs(pkp.UUID)
 	if err != nil {
@@ -210,10 +208,10 @@ func (pkp *publicKeyPacket) setPublicKeyV3(pk *packet.PublicKeyV3) error {
 	if err != nil {
 		return errgo.Mask(err)
 	}
-	pkp.RFingerprint = util.Reverse(fingerprint)
+	pkp.RFingerprint = Reverse(fingerprint)
 	pkp.UUID = pkp.RFingerprint
-	pkp.RShortID = util.Reverse(fmt.Sprintf("%08x", uint32(pk.KeyId)))
-	pkp.RKeyID = util.Reverse(fmt.Sprintf("%016x", pk.KeyId))
+	pkp.RShortID = Reverse(fmt.Sprintf("%08x", uint32(pk.KeyId)))
+	pkp.RKeyID = Reverse(fmt.Sprintf("%016x", pk.KeyId))
 	pkp.Creation = pk.CreationTime
 	pkp.Expiration = NeverExpires
 	if pk.DaysToExpire > 0 {
@@ -230,7 +228,7 @@ func suffixID(rid string, n int) (string, bool) {
 	if l < n {
 		return "", false
 	}
-	id := util.Reverse(rid)
+	id := Reverse(rid)
 	return id[l-n : l], true
 }
 
