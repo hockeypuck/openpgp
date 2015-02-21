@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/hockeypuck/openpgp.svg?branch=master)](https://travis-ci.org/hockeypuck/openpgp)
+[![GoDoc](https://godoc.org/gopkg.in/hockeypuck/openpgp.v0?status.svg)](https://godoc.org/gopkg.in/hockeypuck/openpgp.v0)
+
 # openpgp
 
 Package `openpgp` provides OpenPGP packet processing for keyservers. It is
