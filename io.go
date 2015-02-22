@@ -18,6 +18,7 @@
 package openpgp
 
 import (
+	"crypto/md5"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
@@ -177,6 +178,10 @@ func (ok *OpaqueKeyring) Parse() (*Pubkey, error) {
 	}
 	if pubkey == nil {
 		return nil, errgo.New("primary public key not found")
+	}
+	pubkey.MD5, err = SksDigest(pubkey, md5.New())
+	if err != nil {
+		return nil, err
 	}
 	return pubkey, nil
 }
