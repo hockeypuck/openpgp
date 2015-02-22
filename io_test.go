@@ -21,15 +21,16 @@ import (
 	"bytes"
 	"crypto/md5"
 	"io"
-	"testing"
-
-	gc "gopkg.in/check.v1"
+	stdtesting "testing"
 
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
+	gc "gopkg.in/check.v1"
+
+	"github.com/hockeypuck/testing"
 )
 
-func Test(t *testing.T) { gc.TestingT(t) }
+func Test(t *stdtesting.T) { gc.TestingT(t) }
 
 type SamplePacketSuite struct{}
 
@@ -54,7 +55,7 @@ func (s *SamplePacketSuite) TestSksDigest(c *gc.C) {
 }
 
 func (s *SamplePacketSuite) TestUatRtt(c *gc.C) {
-	f := MustInput(c, "uat.asc")
+	f := testing.MustInput(c, "uat.asc")
 	defer f.Close()
 	block, err := armor.Decode(f)
 	c.Assert(err, gc.IsNil)
@@ -92,7 +93,7 @@ func (s *SamplePacketSuite) TestPacketCounts(c *gc.C) {
 	}}
 	for i, testCase := range testCases {
 		c.Logf("test#%d: %s", i, testCase.name)
-		f := MustInput(c, testCase.name)
+		f := testing.MustInput(c, testCase.name)
 		defer f.Close()
 		block, err := armor.Decode(f)
 		c.Assert(err, gc.IsNil)
@@ -109,7 +110,7 @@ func (s *SamplePacketSuite) TestPacketCounts(c *gc.C) {
 }
 
 func (s *SamplePacketSuite) TestDeduplicate(c *gc.C) {
-	f := MustInput(c, "d7346e26.asc")
+	f := testing.MustInput(c, "d7346e26.asc")
 	defer f.Close()
 	block, err := armor.Decode(f)
 	if err != nil {

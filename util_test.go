@@ -18,39 +18,13 @@
 package openpgp
 
 import (
-	"os"
-	"path/filepath"
-	"runtime"
-
-	"golang.org/x/crypto/openpgp/armor"
 	gc "gopkg.in/check.v1"
+
+	"github.com/hockeypuck/testing"
 )
 
-func MustInput(c *gc.C, name string) *os.File {
-	_, thisFile, _, ok := runtime.Caller(0)
-	if !ok {
-		c.Fatal("cannot locate unit test data files")
-	}
-	path := filepath.Join(filepath.Dir(thisFile), "testdata", name)
-	f, err := os.Open(path)
-	if err != nil {
-		c.Fatalf("cannot open unit test data file %q: %v", path, err)
-	}
-	return f
-}
-
 func MustInputAscKeys(c *gc.C, name string) []*Pubkey {
-	f := MustInput(c, name)
-	defer f.Close()
-	block, err := armor.Decode(f)
-	c.Assert(err, gc.IsNil)
-
-	var result []*Pubkey
-	for keyRead := range ReadKeys(block.Body) {
-		c.Assert(keyRead.Error, gc.IsNil)
-		result = append(result, keyRead.Pubkey)
-	}
-	return result
+	return MustReadArmorKeys(testing.MustInput(c, name)).MustParse()
 }
 
 func MustInputAscKey(c *gc.C, name string) *Pubkey {

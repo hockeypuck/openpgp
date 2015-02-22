@@ -27,6 +27,8 @@ import (
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
 	gc "gopkg.in/check.v1"
+
+	"github.com/hockeypuck/testing"
 )
 
 type ResolveSuite struct{}
@@ -34,7 +36,7 @@ type ResolveSuite struct{}
 var _ = gc.Suite(&ResolveSuite{})
 
 func (s *ResolveSuite) TestBadSelfSigUid(c *gc.C) {
-	f := MustInput(c, "badselfsig.asc")
+	f := testing.MustInput(c, "badselfsig.asc")
 	var keys []*ReadKeyResult
 	for kr := range ReadKeys(f) {
 		keys = append(keys, kr)
@@ -44,7 +46,7 @@ func (s *ResolveSuite) TestBadSelfSigUid(c *gc.C) {
 }
 
 func (s *ResolveSuite) TestDupSigSksDigest(c *gc.C) {
-	f := MustInput(c, "252B8B37.dupsig.asc")
+	f := testing.MustInput(c, "252B8B37.dupsig.asc")
 	defer f.Close()
 	block, err := armor.Decode(f)
 	c.Assert(err, gc.IsNil)
@@ -63,7 +65,7 @@ func (s *ResolveSuite) TestDupSigSksDigest(c *gc.C) {
 }
 
 func (s *ResolveSuite) TestRoundTripSksDigest(c *gc.C) {
-	f := MustInput(c, "252B8B37.dupsig.asc")
+	f := testing.MustInput(c, "252B8B37.dupsig.asc")
 	defer f.Close()
 	block, err := armor.Decode(f)
 	c.Assert(err, gc.IsNil)
@@ -155,7 +157,7 @@ func (s *ResolveSuite) TestKeyExpiration(c *gc.C) {
 // packets which are not normally part of an exported public key --
 // trust packets, in this case.
 func (s *ResolveSuite) TestUnsuppIgnored(c *gc.C) {
-	f := MustInput(c, "snowcrash.gpg")
+	f := testing.MustInput(c, "snowcrash.gpg")
 	var key *Pubkey
 	for keyRead := range ReadKeys(f) {
 		c.Assert(keyRead.Error, gc.IsNil)
@@ -185,7 +187,7 @@ func (s *ResolveSuite) TestMissingUidFk(c *gc.C) {
 func (s *ResolveSuite) TestV3NoUidSig(c *gc.C) {
 	key := MustInputAscKey(c, "0xd46b7c827be290fe4d1f9291b1ebc61a.asc")
 	c.Assert(key.RKeyID, gc.Equals, "93228d3b46fd0670")
-	f := MustInput(c, "0xd46b7c827be290fe4d1f9291b1ebc61a.asc")
+	f := testing.MustInput(c, "0xd46b7c827be290fe4d1f9291b1ebc61a.asc")
 	defer f.Close()
 	block, err := armor.Decode(f)
 	c.Assert(err, gc.IsNil)

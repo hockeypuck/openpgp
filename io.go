@@ -31,6 +31,7 @@ import (
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
 	"gopkg.in/errgo.v1"
+
 	log "gopkg.in/hockeypuck/logrus.v0"
 )
 
@@ -255,22 +256,17 @@ type ReadKeyResult struct {
 	Error error
 }
 
-type ReadKeyResults []*ReadKeyResult
-
-func (r ReadKeyResults) GoodKeys() []*Pubkey {
-	var result []*Pubkey
-	for _, rkr := range r {
-		if rkr.Error == nil {
-			result = append(result, rkr.Pubkey)
-		}
-	}
-	return result
-}
-
 type PubkeyChan chan *ReadKeyResult
 
-func ErrReadKeys(msg string) *ReadKeyResult {
-	return &ReadKeyResult{Error: fmt.Errorf(msg)}
+func (c PubkeyChan) MustParse() []*Pubkey {
+	var result []*Pubkey
+	for readKey := range c {
+		if readKey.Error != nil {
+			panic(readKey.Error)
+		}
+		result = append(result, readKey.Pubkey)
+	}
+	return result
 }
 
 // ReadKeys reads public key material from input and sends them on a channel.
@@ -281,6 +277,9 @@ func ReadKeys(r io.Reader) PubkeyChan {
 		defer close(c)
 		for keyRead := range readKeys(r) {
 			c <- keyRead
+		}
+		if closer, ok := r.(io.Closer); ok {
+			closer.Close()
 		}
 	}()
 	return c
@@ -299,5 +298,21 @@ func readKeys(r io.Reader) PubkeyChan {
 			}
 		}
 	}()
+	return c
+}
+
+func ReadArmorKeys(r io.Reader) (PubkeyChan, error) {
+	block, err := armor.Decode(r)
+	if err != nil {
+		return nil, err
+	}
+	return ReadKeys(block.Body), nil
+}
+
+func MustReadArmorKeys(r io.Reader) PubkeyChan {
+	c, err := ReadArmorKeys(r)
+	if err != nil {
+		panic(err)
+	}
 	return c
 }
