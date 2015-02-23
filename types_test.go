@@ -26,7 +26,7 @@ type TypesSuite struct{}
 var _ = gc.Suite(&TypesSuite{})
 
 func (s *TypesSuite) TestVisitor(c *gc.C) {
-	key := MustInputAscKey(c, "sksdigest.asc")
+	key := MustInputAscKey("sksdigest.asc")
 	c.Assert(key.UserIDs, gc.HasLen, 1)
 	c.Assert(key.UserIDs[0].Signatures, gc.HasLen, 1)
 	c.Assert(key.UserIDs[0].Signatures[0], gc.NotNil)
@@ -56,7 +56,7 @@ func (s *TypesSuite) TestVisitor(c *gc.C) {
 }
 
 func (s *TypesSuite) TestIterOpaque(c *gc.C) {
-	key := MustInputAscKey(c, "sksdigest.asc")
+	key := MustInputAscKey("sksdigest.asc")
 	hits := make(map[uint8]int)
 	for _, tag := range []uint8{
 		2, 6, 13, 14} {

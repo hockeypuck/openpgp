@@ -18,19 +18,19 @@
 package openpgp
 
 import (
-	gc "gopkg.in/check.v1"
+	"fmt"
 
 	"github.com/hockeypuck/testing"
 )
 
-func MustInputAscKeys(c *gc.C, name string) []*Pubkey {
-	return MustReadArmorKeys(testing.MustInput(c, name)).MustParse()
+func MustInputAscKeys(name string) []*Pubkey {
+	return MustReadArmorKeys(testing.MustInput(name)).MustParse()
 }
 
-func MustInputAscKey(c *gc.C, name string) *Pubkey {
-	keys := MustInputAscKeys(c, name)
+func MustInputAscKey(name string) *Pubkey {
+	keys := MustInputAscKeys(name)
 	if len(keys) != 1 {
-		c.Fatalf("expected one key, got %d", len(keys))
+		panic(fmt.Errorf("expected one key, got %d", len(keys)))
 	}
 	return keys[0]
 }

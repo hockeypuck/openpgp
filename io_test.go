@@ -37,7 +37,7 @@ type SamplePacketSuite struct{}
 var _ = gc.Suite(&SamplePacketSuite{})
 
 func (s *SamplePacketSuite) TestVerifyUserAttributeSig(c *gc.C) {
-	key := MustInputAscKey(c, "uat.asc")
+	key := MustInputAscKey("uat.asc")
 	c.Assert(key.UserAttributes, gc.HasLen, 1)
 	DropDuplicates(key)
 	c.Assert(key.UserAttributes, gc.HasLen, 1)
@@ -47,7 +47,7 @@ func (s *SamplePacketSuite) TestVerifyUserAttributeSig(c *gc.C) {
 }
 
 func (s *SamplePacketSuite) TestSksDigest(c *gc.C) {
-	key := MustInputAscKey(c, "sksdigest.asc")
+	key := MustInputAscKey("sksdigest.asc")
 	md5, err := SksDigest(key, md5.New())
 	c.Assert(err, gc.IsNil)
 	c.Assert(key.RShortID, gc.Equals, "ce353cf4")
@@ -55,7 +55,7 @@ func (s *SamplePacketSuite) TestSksDigest(c *gc.C) {
 }
 
 func (s *SamplePacketSuite) TestUatRtt(c *gc.C) {
-	f := testing.MustInput(c, "uat.asc")
+	f := testing.MustInput("uat.asc")
 	defer f.Close()
 	block, err := armor.Decode(f)
 	c.Assert(err, gc.IsNil)
@@ -93,7 +93,7 @@ func (s *SamplePacketSuite) TestPacketCounts(c *gc.C) {
 	}}
 	for i, testCase := range testCases {
 		c.Logf("test#%d: %s", i, testCase.name)
-		f := testing.MustInput(c, testCase.name)
+		f := testing.MustInput(testCase.name)
 		defer f.Close()
 		block, err := armor.Decode(f)
 		c.Assert(err, gc.IsNil)
@@ -110,7 +110,7 @@ func (s *SamplePacketSuite) TestPacketCounts(c *gc.C) {
 }
 
 func (s *SamplePacketSuite) TestDeduplicate(c *gc.C) {
-	f := testing.MustInput(c, "d7346e26.asc")
+	f := testing.MustInput("d7346e26.asc")
 	defer f.Close()
 	block, err := armor.Decode(f)
 	if err != nil {
@@ -164,8 +164,8 @@ func (s *SamplePacketSuite) TestDeduplicate(c *gc.C) {
 }
 
 func (s *SamplePacketSuite) TestMerge(c *gc.C) {
-	key1 := MustInputAscKey(c, "lp1195901.asc")
-	key2 := MustInputAscKey(c, "lp1195901_2.asc")
+	key1 := MustInputAscKey("lp1195901.asc")
+	key2 := MustInputAscKey("lp1195901_2.asc")
 	err := Merge(key2, key1)
 	c.Assert(err, gc.IsNil)
 	var matchUID *UserID

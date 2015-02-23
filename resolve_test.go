@@ -36,7 +36,7 @@ type ResolveSuite struct{}
 var _ = gc.Suite(&ResolveSuite{})
 
 func (s *ResolveSuite) TestBadSelfSigUid(c *gc.C) {
-	f := testing.MustInput(c, "badselfsig.asc")
+	f := testing.MustInput("badselfsig.asc")
 	var keys []*ReadKeyResult
 	for kr := range ReadKeys(f) {
 		keys = append(keys, kr)
@@ -46,7 +46,7 @@ func (s *ResolveSuite) TestBadSelfSigUid(c *gc.C) {
 }
 
 func (s *ResolveSuite) TestDupSigSksDigest(c *gc.C) {
-	f := testing.MustInput(c, "252B8B37.dupsig.asc")
+	f := testing.MustInput("252B8B37.dupsig.asc")
 	defer f.Close()
 	block, err := armor.Decode(f)
 	c.Assert(err, gc.IsNil)
@@ -65,7 +65,7 @@ func (s *ResolveSuite) TestDupSigSksDigest(c *gc.C) {
 }
 
 func (s *ResolveSuite) TestRoundTripSksDigest(c *gc.C) {
-	f := testing.MustInput(c, "252B8B37.dupsig.asc")
+	f := testing.MustInput("252B8B37.dupsig.asc")
 	defer f.Close()
 	block, err := armor.Decode(f)
 	c.Assert(err, gc.IsNil)
@@ -102,7 +102,7 @@ func patchNow(t time.Time) func() {
 func (s *ResolveSuite) TestUserIDSelfSigs(c *gc.C) {
 	defer patchNow(time.Date(2014, time.January, 1, 0, 0, 0, 0, time.UTC))()
 
-	key := MustInputAscKey(c, "lp1195901.asc")
+	key := MustInputAscKey("lp1195901.asc")
 	err := DropDuplicates(key)
 	c.Assert(err, gc.IsNil)
 	Sort(key)
@@ -115,7 +115,7 @@ func (s *ResolveSuite) TestUserIDSelfSigs(c *gc.C) {
 		}
 	}
 
-	key = MustInputAscKey(c, "lp1195901_2.asc")
+	key = MustInputAscKey("lp1195901_2.asc")
 	err = DropDuplicates(key)
 	c.Assert(err, gc.IsNil)
 	Sort(key)
@@ -125,7 +125,7 @@ func (s *ResolveSuite) TestUserIDSelfSigs(c *gc.C) {
 func (s *ResolveSuite) TestSortUserIDs(c *gc.C) {
 	defer patchNow(time.Date(2014, time.January, 1, 0, 0, 0, 0, time.UTC))()
 
-	key := MustInputAscKey(c, "lp1195901.asc")
+	key := MustInputAscKey("lp1195901.asc")
 	err := DropDuplicates(key)
 	c.Assert(err, gc.IsNil)
 	Sort(key)
@@ -143,7 +143,7 @@ func (s *ResolveSuite) TestSortUserIDs(c *gc.C) {
 func (s *ResolveSuite) TestKeyExpiration(c *gc.C) {
 	defer patchNow(time.Date(2013, time.January, 1, 0, 0, 0, 0, time.UTC))()
 
-	key := MustInputAscKey(c, "lp1195901.asc")
+	key := MustInputAscKey("lp1195901.asc")
 	err := DropDuplicates(key)
 	c.Assert(err, gc.IsNil)
 	Sort(key)
@@ -157,7 +157,7 @@ func (s *ResolveSuite) TestKeyExpiration(c *gc.C) {
 // packets which are not normally part of an exported public key --
 // trust packets, in this case.
 func (s *ResolveSuite) TestUnsuppIgnored(c *gc.C) {
-	f := testing.MustInput(c, "snowcrash.gpg")
+	f := testing.MustInput("snowcrash.gpg")
 	var key *Pubkey
 	for keyRead := range ReadKeys(f) {
 		c.Assert(keyRead.Error, gc.IsNil)
@@ -180,14 +180,14 @@ func (s *ResolveSuite) TestUnsuppIgnored(c *gc.C) {
 }
 
 func (s *ResolveSuite) TestMissingUidFk(c *gc.C) {
-	key := MustInputAscKey(c, "d7346e26.asc")
+	key := MustInputAscKey("d7346e26.asc")
 	c.Log(key)
 }
 
 func (s *ResolveSuite) TestV3NoUidSig(c *gc.C) {
-	key := MustInputAscKey(c, "0xd46b7c827be290fe4d1f9291b1ebc61a.asc")
+	key := MustInputAscKey("0xd46b7c827be290fe4d1f9291b1ebc61a.asc")
 	c.Assert(key.RKeyID, gc.Equals, "93228d3b46fd0670")
-	f := testing.MustInput(c, "0xd46b7c827be290fe4d1f9291b1ebc61a.asc")
+	f := testing.MustInput("0xd46b7c827be290fe4d1f9291b1ebc61a.asc")
 	defer f.Close()
 	block, err := armor.Decode(f)
 	c.Assert(err, gc.IsNil)
@@ -207,10 +207,10 @@ func (s *ResolveSuite) TestV3NoUidSig(c *gc.C) {
 }
 
 func (s *ResolveSuite) TestMergeAddSig(c *gc.C) {
-	unsignedKeys := MustInputAscKeys(c, "alice_unsigned.asc")
+	unsignedKeys := MustInputAscKeys("alice_unsigned.asc")
 	c.Assert(unsignedKeys, gc.HasLen, 1)
 	c.Assert(unsignedKeys[0], gc.NotNil)
-	signedKeys := MustInputAscKeys(c, "alice_signed.asc")
+	signedKeys := MustInputAscKeys("alice_signed.asc")
 	c.Assert(signedKeys, gc.HasLen, 1)
 	c.Assert(signedKeys[0], gc.NotNil)
 

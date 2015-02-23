@@ -125,6 +125,9 @@ func (s *SelfSigs) ValidSince() (time.Time, bool) {
 	if len(s.Revocations) > 0 {
 		return zeroTime, false
 	}
+	if pubkey, ok := s.target.(*Pubkey); ok {
+		return pubkey.Creation, true
+	}
 	for _, checkSig := range s.Certifications {
 		// Return the first non-expired self-signature creation time.
 		expiresAt := checkSig.Signature.Expiration

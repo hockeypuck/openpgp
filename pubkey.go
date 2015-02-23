@@ -184,16 +184,15 @@ func (pkp *publicKeyPacket) setPublicKey(pk *packet.PublicKey) error {
 	return nil
 }
 
-func (pkp *publicKeyPacket) setV4IDs(uuid string) error {
-	var ok bool
-	pkp.RShortID, ok = suffixID(uuid, 8)
-	if !ok {
-		return errgo.Newf("invalid fingerprint %q", uuid)
+func (pkp *publicKeyPacket) setV4IDs(rfp string) error {
+	if len(rfp) < 8 {
+		return errgo.Newf("invalid fingerprint %q", rfp)
 	}
-	pkp.RKeyID, ok = suffixID(uuid, 16)
-	if !ok {
-		return errgo.Newf("invalid fingerprint %q", uuid)
+	pkp.RShortID = rfp[:8]
+	if len(rfp) < 16 {
+		return errgo.Newf("invalid fingerprint %q", rfp)
 	}
+	pkp.RKeyID = rfp[:16]
 	return nil
 }
 
@@ -221,15 +220,6 @@ func (pkp *publicKeyPacket) setPublicKeyV3(pk *packet.PublicKeyV3) error {
 	pkp.BitLen = int(bitLen)
 	pkp.Valid = true
 	return nil
-}
-
-func suffixID(rid string, n int) (string, bool) {
-	l := len(rid)
-	if l < n {
-		return "", false
-	}
-	id := Reverse(rid)
-	return id[l-n : l], true
 }
 
 type Pubkey struct {
@@ -331,8 +321,6 @@ func (pubkey *Pubkey) SelfSigs() *SelfSigs {
 		switch sig.SigType {
 		case 0x20: // packet.SigTypeKeyRevocation
 			result.Revocations = append(result.Revocations, checkSig)
-		case 0x1f:
-			result.Certifications = append(result.Certifications, checkSig)
 		}
 	}
 	result.resolve()
