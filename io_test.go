@@ -50,7 +50,7 @@ func (s *SamplePacketSuite) TestSksDigest(c *gc.C) {
 	key := MustInputAscKey("sksdigest.asc")
 	md5, err := SksDigest(key, md5.New())
 	c.Assert(err, gc.IsNil)
-	c.Assert(key.RShortID, gc.Equals, "ce353cf4")
+	c.Assert(key.ShortID(), gc.Equals, "ce353cf4")
 	c.Assert(md5, gc.Equals, "da84f40d830a7be2a3c0b7f2e146bfaa")
 }
 
