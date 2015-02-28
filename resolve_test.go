@@ -214,6 +214,12 @@ func (s *ResolveSuite) TestMergeAddSig(c *gc.C) {
 	c.Assert(signedKeys, gc.HasLen, 1)
 	c.Assert(signedKeys[0], gc.NotNil)
 
+	c.Assert(unsignedKeys[0].UserIDs, gc.HasLen, 1)
+	c.Assert(signedKeys[0].UserIDs, gc.HasLen, 1)
+
+	c.Assert(unsignedKeys[0].UserIDs[0].Signatures, gc.HasLen, 1)
+	c.Assert(signedKeys[0].UserIDs[0].Signatures, gc.HasLen, 2)
+
 	hasExpectedSig := func(key *Pubkey) bool {
 		for _, node := range key.contents() {
 			sig, ok := node.(*Signature)

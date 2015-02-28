@@ -19,6 +19,7 @@ package openpgp
 
 import (
 	"bytes"
+	"crypto/md5"
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
@@ -325,4 +326,13 @@ func (pubkey *Pubkey) SelfSigs() *SelfSigs {
 	}
 	result.resolve()
 	return result
+}
+
+func (pubkey *Pubkey) updateMD5() error {
+	digest, err := SksDigest(pubkey, md5.New())
+	if err != nil {
+		return err
+	}
+	pubkey.MD5 = digest
+	return nil
 }

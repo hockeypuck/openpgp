@@ -17,18 +17,24 @@
 
 package openpgp
 
-import (
-	"gopkg.in/errgo.v1"
-)
+import "gopkg.in/errgo.v1"
 
-func DropDuplicates(root packetNode) error {
-	return dedup(root, nil)
+func DropDuplicates(key *Pubkey) error {
+	err := dedup(key, nil)
+	if err != nil {
+		return err
+	}
+	return key.updateMD5()
 }
 
-func CollectDuplicates(root packetNode) error {
-	return dedup(root, func(primary, _ packetNode) {
+func CollectDuplicates(key *Pubkey) error {
+	err := dedup(key, func(primary, _ packetNode) {
 		primary.packet().Count++
 	})
+	if err != nil {
+		return err
+	}
+	return key.updateMD5()
 }
 
 func Merge(dst, src *Pubkey) error {
@@ -36,13 +42,17 @@ func Merge(dst, src *Pubkey) error {
 	dst.UserAttributes = append(dst.UserAttributes, src.UserAttributes...)
 	dst.Subkeys = append(dst.Subkeys, src.Subkeys...)
 	dst.Others = append(dst.Others, src.Others...)
-	return dedup(dst, func(primary, duplicate packetNode) {
+	err := dedup(dst, func(primary, duplicate packetNode) {
 		primaryPacket := primary.packet()
 		duplicatePacket := duplicate.packet()
 		if duplicatePacket.Count > primaryPacket.Count {
 			primaryPacket.Count = duplicatePacket.Count
 		}
 	})
+	if err != nil {
+		return err
+	}
+	return dst.updateMD5()
 }
 
 func dedup(root packetNode, handleDuplicate func(primary, duplicate packetNode)) error {
