@@ -186,3 +186,7 @@ func (sig *Signature) signatureV3Packet() (*packet.SignatureV3, error) {
 	}
 	return s, nil
 }
+
+func (sig *Signature) IssuerKeyID() string {
+	return Reverse(sig.RIssuerKeyID)
+}
