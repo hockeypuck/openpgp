@@ -48,6 +48,9 @@ type Packet struct {
 
 	// Valid indicates whether Hockeypuck is able to parse the contents of this
 	// packet or if it is unsupported/malformed key material.
+	// TODO: name is misleading as it doesn't mean validated signature, just that
+	// Hockeypuck was able to semantically parse the packet and might be able to
+	// validate or use it cryptographically.
 	Valid bool
 
 	// Count indicates the number of times this packet occurs in the keyring.

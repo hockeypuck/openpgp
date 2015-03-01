@@ -156,7 +156,8 @@ func (pkp *publicKeyPacket) setUnsupported(op *packet.OpaquePacket) error {
 	h.Write([]byte{0x99, byte(len(op.Contents) >> 8), byte(len(op.Contents))})
 	h.Write(op.Contents)
 	fpr := hex.EncodeToString(h.Sum(nil))
-	pkp.UUID = Reverse(fpr)
+	pkp.RFingerprint = Reverse(fpr)
+	pkp.UUID = pkp.RFingerprint
 	return pkp.setV4IDs(pkp.UUID)
 }
 
