@@ -26,7 +26,6 @@ import (
 	"io"
 	"os"
 	"sort"
-	"time"
 
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
@@ -36,18 +35,7 @@ import (
 	log "gopkg.in/hockeypuck/logrus.v0"
 )
 
-// Comparable time flag for "never expires"
-var NeverExpires time.Time
-
 var ErrMissingSignature = fmt.Errorf("Key material missing an expected signature")
-
-func init() {
-	t, err := time.Parse("2006-01-02 15:04:05 -0700", "9999-12-31 23:59:59 +0000")
-	if err != nil {
-		panic(err)
-	}
-	NeverExpires = t
-}
 
 func WritePackets(w io.Writer, key *PrimaryKey) error {
 	for _, node := range key.contents() {

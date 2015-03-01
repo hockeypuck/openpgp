@@ -70,7 +70,7 @@ func algoCode(algo int) string {
 	case 22:
 		return "eddsa"
 	default:
-		return "exp"
+		return fmt.Sprintf("unk%d?", algo)
 	}
 }
 
@@ -179,7 +179,6 @@ func (pkp *PublicKey) setPublicKey(pk *packet.PublicKey) error {
 		return err
 	}
 	pkp.Creation = pk.CreationTime
-	pkp.Expiration = NeverExpires
 	pkp.Algorithm = int(pk.PubKeyAlgo)
 	pkp.BitLen = int(bitLen)
 	pkp.Parsed = true
@@ -214,7 +213,6 @@ func (pkp *PublicKey) setPublicKeyV3(pk *packet.PublicKeyV3) error {
 	pkp.RShortID = Reverse(fmt.Sprintf("%08x", uint32(pk.KeyId)))
 	pkp.RKeyID = Reverse(fmt.Sprintf("%016x", pk.KeyId))
 	pkp.Creation = pk.CreationTime
-	pkp.Expiration = NeverExpires
 	if pk.DaysToExpire > 0 {
 		pkp.Expiration = pkp.Creation.Add(time.Duration(pk.DaysToExpire) * time.Hour * 24)
 	}
