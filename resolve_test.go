@@ -70,10 +70,10 @@ func (s *ResolveSuite) TestRoundTripSksDigest(c *gc.C) {
 	block, err := armor.Decode(f)
 	c.Assert(err, gc.IsNil)
 
-	var key *Pubkey
+	var key *PrimaryKey
 	for keyRead := range readKeys(block.Body) {
 		c.Assert(keyRead.Error, gc.IsNil)
-		key = keyRead.Pubkey
+		key = keyRead.PrimaryKey
 	}
 
 	var packets []*packet.OpaquePacket
@@ -148,9 +148,9 @@ func (s *ResolveSuite) TestKeyExpiration(c *gc.C) {
 	c.Assert(err, gc.IsNil)
 	Sort(key)
 
-	c.Assert(key.Subkeys, gc.HasLen, 7)
-	c.Assert(key.Subkeys[0].UUID, gc.Equals, "6c949d8098859e7816e6b33d54d50118a1b8dfc9")
-	c.Assert(key.Subkeys[1].UUID, gc.Equals, "3745e9590264de539613d833ad83b9366e3d6be3")
+	c.Assert(key.SubKeys, gc.HasLen, 7)
+	c.Assert(key.SubKeys[0].UUID, gc.Equals, "6c949d8098859e7816e6b33d54d50118a1b8dfc9")
+	c.Assert(key.SubKeys[1].UUID, gc.Equals, "3745e9590264de539613d833ad83b9366e3d6be3")
 }
 
 // TestUnsuppIgnored tests parsing key material containing
@@ -158,18 +158,18 @@ func (s *ResolveSuite) TestKeyExpiration(c *gc.C) {
 // trust packets, in this case.
 func (s *ResolveSuite) TestUnsuppIgnored(c *gc.C) {
 	f := testing.MustInput("snowcrash.gpg")
-	var key *Pubkey
+	var key *PrimaryKey
 	for keyRead := range ReadKeys(f) {
 		c.Assert(keyRead.Error, gc.IsNil)
-		key = keyRead.Pubkey
+		key = keyRead.PrimaryKey
 		break
 	}
 	c.Assert(key, gc.NotNil)
 	for _, node := range key.contents() {
 		switch p := node.(type) {
-		case *Pubkey:
+		case *PrimaryKey:
 			c.Assert(p.Others, gc.HasLen, 0)
-		case *Subkey:
+		case *SubKey:
 			c.Assert(p.Others, gc.HasLen, 0)
 		case *UserID:
 			c.Assert(p.Others, gc.HasLen, 0)
@@ -220,7 +220,7 @@ func (s *ResolveSuite) TestMergeAddSig(c *gc.C) {
 	c.Assert(unsignedKeys[0].UserIDs[0].Signatures, gc.HasLen, 1)
 	c.Assert(signedKeys[0].UserIDs[0].Signatures, gc.HasLen, 2)
 
-	hasExpectedSig := func(key *Pubkey) bool {
+	hasExpectedSig := func(key *PrimaryKey) bool {
 		for _, node := range key.contents() {
 			sig, ok := node.(*Signature)
 			if ok {

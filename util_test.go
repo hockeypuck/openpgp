@@ -23,11 +23,11 @@ import (
 	"github.com/hockeypuck/testing"
 )
 
-func MustInputAscKeys(name string) []*Pubkey {
+func MustInputAscKeys(name string) []*PrimaryKey {
 	return MustReadArmorKeys(testing.MustInput(name)).MustParse()
 }
 
-func MustInputAscKey(name string) *Pubkey {
+func MustInputAscKey(name string) *PrimaryKey {
 	keys := MustInputAscKeys(name)
 	if len(keys) != 1 {
 		panic(fmt.Errorf("expected one key, got %d", len(keys)))

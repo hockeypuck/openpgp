@@ -61,14 +61,14 @@ func lessSelfSigs(i, j *SelfSigs) (bool, bool) {
 }
 
 type uidSorter struct {
-	*Pubkey
+	*PrimaryKey
 }
 
 func (s *uidSorter) Len() int { return len(s.UserIDs) }
 
 func (s *uidSorter) Less(i, j int) bool {
-	iss := s.UserIDs[i].SelfSigs(s.Pubkey)
-	jss := s.UserIDs[j].SelfSigs(s.Pubkey)
+	iss := s.UserIDs[i].SelfSigs(s.PrimaryKey)
+	jss := s.UserIDs[j].SelfSigs(s.PrimaryKey)
 	less, ok := lessSelfSigs(iss, jss)
 	if ok {
 		return less
@@ -81,14 +81,14 @@ func (s *uidSorter) Swap(i, j int) {
 }
 
 type uatSorter struct {
-	*Pubkey
+	*PrimaryKey
 }
 
 func (s *uatSorter) Len() int { return len(s.UserAttributes) }
 
 func (s *uatSorter) Less(i, j int) bool {
-	iss := s.UserAttributes[i].SelfSigs(s.Pubkey)
-	jss := s.UserAttributes[j].SelfSigs(s.Pubkey)
+	iss := s.UserAttributes[i].SelfSigs(s.PrimaryKey)
+	jss := s.UserAttributes[j].SelfSigs(s.PrimaryKey)
 	less, _ := lessSelfSigs(iss, jss)
 	return less
 }
@@ -98,23 +98,23 @@ func (s *uatSorter) Swap(i, j int) {
 }
 
 type subkeySorter struct {
-	*Pubkey
+	*PrimaryKey
 }
 
-func (s *subkeySorter) Len() int { return len(s.Subkeys) }
+func (s *subkeySorter) Len() int { return len(s.SubKeys) }
 
 func (s *subkeySorter) Less(i, j int) bool {
-	iss := s.Subkeys[i].SelfSigs(s.Pubkey)
-	jss := s.Subkeys[j].SelfSigs(s.Pubkey)
+	iss := s.SubKeys[i].SelfSigs(s.PrimaryKey)
+	jss := s.SubKeys[j].SelfSigs(s.PrimaryKey)
 	less, ok := lessSelfSigs(iss, jss)
 	if ok {
 		return less
 	}
-	return s.Subkeys[i].Creation.Unix() < s.Subkeys[j].Creation.Unix()
+	return s.SubKeys[i].Creation.Unix() < s.SubKeys[j].Creation.Unix()
 }
 
 func (s *subkeySorter) Swap(i, j int) {
-	s.Subkeys[i], s.Subkeys[j] = s.Subkeys[j], s.Subkeys[i]
+	s.SubKeys[i], s.SubKeys[j] = s.SubKeys[j], s.SubKeys[i]
 }
 
 type sigSorter struct {
@@ -132,15 +132,15 @@ func (s *sigSorter) Swap(i, j int) {
 }
 
 // Sort reorders the key material based on precedence rules.
-func Sort(pubkey *Pubkey) {
+func Sort(pubkey *PrimaryKey) {
 	for _, node := range pubkey.contents() {
 		switch p := node.(type) {
-		case *Pubkey:
+		case *PrimaryKey:
 			sort.Sort(&sigSorter{p.Signatures})
 			sort.Sort(&uidSorter{p})
 			sort.Sort(&uatSorter{p})
 			sort.Sort(&subkeySorter{p})
-		case *Subkey:
+		case *SubKey:
 			sort.Sort(&sigSorter{p.Signatures})
 		case *UserID:
 			sort.Sort(&sigSorter{p.Signatures})

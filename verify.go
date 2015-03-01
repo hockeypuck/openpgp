@@ -25,7 +25,7 @@ import (
 	"gopkg.in/errgo.v1"
 )
 
-func (pubkey *Pubkey) verifyPublicKeySelfSig(signed *publicKeyPacket, sig *Signature) error {
+func (pubkey *PrimaryKey) verifyPublicKeySelfSig(signed *PublicKey, sig *Signature) error {
 	pkOpaque, err := pubkey.opaquePacket()
 	if err != nil {
 		return errgo.Mask(err)
@@ -56,7 +56,7 @@ func (pubkey *Pubkey) verifyPublicKeySelfSig(signed *publicKeyPacket, sig *Signa
 	return ErrInvalidPacketType
 }
 
-func (pubkey *Pubkey) verifyUserIDSelfSig(uid *UserID, sig *Signature) error {
+func (pubkey *PrimaryKey) verifyUserIDSelfSig(uid *UserID, sig *Signature) error {
 	u, err := uid.userIDPacket()
 	if err != nil {
 		return errgo.Mask(err)
@@ -96,8 +96,8 @@ func (pubkey *Pubkey) verifyUserIDSelfSig(uid *UserID, sig *Signature) error {
 	}
 }
 
-func (pubkey *Pubkey) verifyUserAttrSelfSig(uat *UserAttribute, sig *Signature) error {
-	pk, err := pubkey.publicKeyPacket.publicKeyPacket()
+func (pubkey *PrimaryKey) verifyUserAttrSelfSig(uat *UserAttribute, sig *Signature) error {
+	pk, err := pubkey.PublicKey.publicKeyPacket()
 	if err != nil {
 		return errgo.Mask(err)
 	}
@@ -114,7 +114,7 @@ func (pubkey *Pubkey) verifyUserAttrSelfSig(uat *UserAttribute, sig *Signature) 
 
 // sigSerializeUserAttribute calculates the user attribute packet hash
 // TODO: clean up & contribute this to golang.org/x/crypto/openpgp.
-func (pubkey *Pubkey) sigSerializeUserAttribute(uat *UserAttribute, hashFunc crypto.Hash) (hash.Hash, error) {
+func (pubkey *PrimaryKey) sigSerializeUserAttribute(uat *UserAttribute, hashFunc crypto.Hash) (hash.Hash, error) {
 	if !hashFunc.Available() {
 		return nil, errgo.Newf("unsupported hash function: %v", hashFunc)
 	}
@@ -131,7 +131,7 @@ func (pubkey *Pubkey) sigSerializeUserAttribute(uat *UserAttribute, hashFunc cry
 		return nil, errgo.Mask(err)
 	}
 	// Get public key v4 packet. User attributes not supported pre-v4.
-	pk, err := pubkey.publicKeyPacket.publicKeyPacket()
+	pk, err := pubkey.PublicKey.publicKeyPacket()
 	if err != nil {
 		return nil, errgo.Mask(err)
 	}

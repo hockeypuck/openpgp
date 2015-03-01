@@ -50,9 +50,9 @@ func (sig *Signature) removeDuplicate(parent packetNode, dup packetNode) error {
 		return errgo.Newf("invalid packet duplicate: %+v", dup)
 	}
 	switch ppkt := parent.(type) {
-	case *Pubkey:
+	case *PrimaryKey:
 		ppkt.Signatures = sigSlice(ppkt.Signatures).without(dupSig)
-	case *Subkey:
+	case *SubKey:
 		ppkt.Signatures = sigSlice(ppkt.Signatures).without(dupSig)
 	case *UserID:
 		ppkt.Signatures = sigSlice(ppkt.Signatures).without(dupSig)
@@ -94,7 +94,7 @@ func ParseSignature(op *packet.OpaquePacket, pubkeyUUID, scopedUUID string) (*Si
 	if err != nil {
 		return nil, errgo.Mask(err)
 	}
-	sig.Valid = true
+	sig.Parsed = true
 	return sig, nil
 }
 

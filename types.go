@@ -46,12 +46,11 @@ type Packet struct {
 	// Tag indicates the OpenPGP package tag type.
 	Tag uint8
 
-	// Valid indicates whether Hockeypuck is able to parse the contents of this
-	// packet or if it is unsupported/malformed key material.
-	// TODO: name is misleading as it doesn't mean validated signature, just that
-	// Hockeypuck was able to semantically parse the packet and might be able to
-	// validate or use it cryptographically.
-	Valid bool
+	// Parsed indicates whether Hockeypuck is able to parse the contents of
+	// this packet or if it is unsupported/malformed key material. Unparsed
+	// content has not been signature verified, and so Hockeypuck may not have
+	// been able to filter out invalid content.
+	Parsed bool
 
 	// Count indicates the number of times this packet occurs in the keyring.
 	Count int
@@ -73,7 +72,7 @@ func ParseOther(op *packet.OpaquePacket, parentID string) (*Packet, error) {
 		UUID:   scopedDigest([]string{parentID}, packetTag, buf.Bytes()),
 		Tag:    op.Tag,
 		Packet: buf.Bytes(),
-		Valid:  false,
+		Parsed: false,
 	}, nil
 }
 
@@ -112,9 +111,9 @@ func (p *Packet) removeDuplicate(parent packetNode, dup packetNode) error {
 		return errgo.Newf("invalid packet duplicate: %+v", dup)
 	}
 	switch ppkt := parent.(type) {
-	case *Pubkey:
+	case *PrimaryKey:
 		ppkt.Others = packetSlice(ppkt.Others).without(dupPacket)
-	case *Subkey:
+	case *SubKey:
 		ppkt.Others = packetSlice(ppkt.Others).without(dupPacket)
 	case *UserID:
 		ppkt.Others = packetSlice(ppkt.Others).without(dupPacket)

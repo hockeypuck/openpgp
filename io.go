@@ -49,7 +49,7 @@ func init() {
 	NeverExpires = t
 }
 
-func WritePackets(w io.Writer, key *Pubkey) error {
+func WritePackets(w io.Writer, key *PrimaryKey) error {
 	for _, node := range key.contents() {
 		op, err := newOpaquePacket(node.packet().Packet)
 		if err != nil {
@@ -63,7 +63,7 @@ func WritePackets(w io.Writer, key *Pubkey) error {
 	return nil
 }
 
-func WriteArmoredPackets(w io.Writer, roots []*Pubkey) error {
+func WriteArmoredPackets(w io.Writer, roots []*PrimaryKey) error {
 	armw, err := armor.Encode(w, openpgp.PublicKeyType, nil)
 	defer armw.Close()
 	if err != nil {
@@ -99,9 +99,9 @@ func (okr *OpaqueKeyring) setPosition(r io.Reader) {
 	okr.Position = -1
 }
 
-func (ok *OpaqueKeyring) Parse() (*Pubkey, error) {
+func (ok *OpaqueKeyring) Parse() (*PrimaryKey, error) {
 	var err error
-	var pubkey *Pubkey
+	var pubkey *PrimaryKey
 	var signablePacket signable
 	for _, opkt := range ok.Packets {
 		var badPacket *packet.OpaquePacket
@@ -109,21 +109,21 @@ func (ok *OpaqueKeyring) Parse() (*Pubkey, error) {
 			if pubkey != nil {
 				return nil, errgo.Newf("multiple public keys in keyring")
 			}
-			pubkey, err = ParsePubkey(opkt)
+			pubkey, err = ParsePrimaryKey(opkt)
 			if err != nil {
 				return nil, errgo.Notef(err, "invalid public key packet type")
 			}
 			signablePacket = pubkey
 		} else if pubkey != nil {
 			switch opkt.Tag {
-			case 14: //packet.PacketTypePublicSubkey:
+			case 14: //packet.PacketTypePublicSubKey:
 				signablePacket = nil
-				subkey, err := ParseSubkey(opkt)
+				subkey, err := ParseSubKey(opkt)
 				if err != nil {
 					log.Debugf("unreadable subkey packet: %v", err)
 					badPacket = opkt
 				} else {
-					pubkey.Subkeys = append(pubkey.Subkeys, subkey)
+					pubkey.SubKeys = append(pubkey.SubKeys, subkey)
 					signablePacket = subkey
 				}
 			case 13: //packet.PacketTypeUserId:
@@ -209,7 +209,7 @@ func ReadOpaqueKeyrings(r io.Reader) OpaqueKeyringChan {
 			case 2, 13, 14, 17:
 				//packet.PacketTypeUserId,
 				//packet.PacketTypeUserAttribute,
-				//packet.PacketTypePublicSubkey,
+				//packet.PacketTypePublicSubKey,
 				//packet.PacketTypeSignature
 				current.Packets = append(current.Packets, op)
 			}
@@ -230,7 +230,7 @@ func ReadOpaqueKeyrings(r io.Reader) OpaqueKeyringChan {
 // SksDigest calculates a cumulative message digest on all OpenPGP packets for
 // a given primary public key, using the same ordering as SKS, the
 // Synchronizing Key Server. Use MD5 for matching digest values with SKS.
-func SksDigest(key *Pubkey, h hash.Hash) (string, error) {
+func SksDigest(key *PrimaryKey, h hash.Hash) (string, error) {
 	var fail string
 	var packets opaquePacketSlice
 	for _, node := range key.contents() {
@@ -257,27 +257,27 @@ func sksDigestOpaque(packets []*packet.OpaquePacket, h hash.Hash) string {
 }
 
 type ReadKeyResult struct {
-	*Pubkey
+	*PrimaryKey
 	Error error
 }
 
-type PubkeyChan chan *ReadKeyResult
+type PrimaryKeyChan chan *ReadKeyResult
 
-func (c PubkeyChan) MustParse() []*Pubkey {
-	var result []*Pubkey
+func (c PrimaryKeyChan) MustParse() []*PrimaryKey {
+	var result []*PrimaryKey
 	for readKey := range c {
 		if readKey.Error != nil {
 			panic(readKey.Error)
 		}
-		result = append(result, readKey.Pubkey)
+		result = append(result, readKey.PrimaryKey)
 	}
 	return result
 }
 
 // ReadKeys reads public key material from input and sends them on a channel.
 // Caller must receive all keys until the channel is closed.
-func ReadKeys(r io.Reader) PubkeyChan {
-	c := make(PubkeyChan)
+func ReadKeys(r io.Reader) PrimaryKeyChan {
+	c := make(PrimaryKeyChan)
 	go func() {
 		defer close(c)
 		for keyRead := range readKeys(r) {
@@ -290,8 +290,8 @@ func ReadKeys(r io.Reader) PubkeyChan {
 	return c
 }
 
-func readKeys(r io.Reader) PubkeyChan {
-	c := make(PubkeyChan)
+func readKeys(r io.Reader) PrimaryKeyChan {
+	c := make(PrimaryKeyChan)
 	go func() {
 		defer close(c)
 		for opkr := range ReadOpaqueKeyrings(r) {
@@ -299,14 +299,14 @@ func readKeys(r io.Reader) PubkeyChan {
 			if err != nil {
 				c <- &ReadKeyResult{Error: err}
 			} else {
-				c <- &ReadKeyResult{Pubkey: pubkey}
+				c <- &ReadKeyResult{PrimaryKey: pubkey}
 			}
 		}
 	}()
 	return c
 }
 
-func ReadArmorKeys(r io.Reader) (PubkeyChan, error) {
+func ReadArmorKeys(r io.Reader) (PrimaryKeyChan, error) {
 	block, err := armor.Decode(r)
 	if err != nil {
 		return nil, err
@@ -314,7 +314,7 @@ func ReadArmorKeys(r io.Reader) (PubkeyChan, error) {
 	return ReadKeys(block.Body), nil
 }
 
-func MustReadArmorKeys(r io.Reader) PubkeyChan {
+func MustReadArmorKeys(r io.Reader) PrimaryKeyChan {
 	c, err := ReadArmorKeys(r)
 	if err != nil {
 		panic(err)

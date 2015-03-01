@@ -54,7 +54,7 @@ func (uat *UserAttribute) appendSignature(sig *Signature) {
 }
 
 func (uat *UserAttribute) removeDuplicate(parent packetNode, dup packetNode) error {
-	pubkey, ok := parent.(*Pubkey)
+	pubkey, ok := parent.(*PrimaryKey)
 	if !ok {
 		return errgo.Newf("invalid uat parent: %+v", parent)
 	}
@@ -100,7 +100,7 @@ func ParseUserAttribute(op *packet.OpaquePacket, parentID string) (*UserAttribut
 	}
 
 	uat.Images = u.ImageData()
-	uat.Valid = true
+	uat.Parsed = true
 	return uat, nil
 }
 
@@ -120,7 +120,7 @@ func (uat *UserAttribute) userAttributePacket() (*packet.UserAttribute, error) {
 	return u, nil
 }
 
-func (uat *UserAttribute) SelfSigs(pubkey *Pubkey) *SelfSigs {
+func (uat *UserAttribute) SelfSigs(pubkey *PrimaryKey) *SelfSigs {
 	result := &SelfSigs{target: uat}
 	for _, sig := range uat.Signatures {
 		// Skip non-self-certifications.
@@ -128,9 +128,9 @@ func (uat *UserAttribute) SelfSigs(pubkey *Pubkey) *SelfSigs {
 			continue
 		}
 		checkSig := &CheckSig{
-			Pubkey:    pubkey,
-			Signature: sig,
-			Error:     pubkey.verifyUserAttrSelfSig(uat, sig),
+			PrimaryKey: pubkey,
+			Signature:  sig,
+			Error:      pubkey.verifyUserAttrSelfSig(uat, sig),
 		}
 		if checkSig.Error != nil {
 			result.Errors = append(result.Errors, checkSig)

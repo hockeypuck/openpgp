@@ -81,7 +81,7 @@ func (s *SamplePacketSuite) TestUatRtt(c *gc.C) {
 func (s *SamplePacketSuite) TestPacketCounts(c *gc.C) {
 	testCases := []struct {
 		name                                         string
-		nUserID, nUserAttribute, nSubkey, nSignature int
+		nUserID, nUserAttribute, nSubKey, nSignature int
 	}{{
 		"0ff16c87.asc", 9, 0, 1, 0,
 	}, {
@@ -97,14 +97,14 @@ func (s *SamplePacketSuite) TestPacketCounts(c *gc.C) {
 		defer f.Close()
 		block, err := armor.Decode(f)
 		c.Assert(err, gc.IsNil)
-		var key *Pubkey
+		var key *PrimaryKey
 		for keyRead := range ReadKeys(block.Body) {
-			key = keyRead.Pubkey
+			key = keyRead.PrimaryKey
 		}
 		c.Assert(key, gc.NotNil)
 		c.Assert(key.UserIDs, gc.HasLen, testCase.nUserID)
 		c.Assert(key.UserAttributes, gc.HasLen, testCase.nUserAttribute)
-		c.Assert(key.Subkeys, gc.HasLen, testCase.nSubkey)
+		c.Assert(key.SubKeys, gc.HasLen, testCase.nSubKey)
 		c.Assert(key.Signatures, gc.HasLen, testCase.nSignature)
 	}
 }

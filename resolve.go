@@ -19,7 +19,7 @@ package openpgp
 
 import "gopkg.in/errgo.v1"
 
-func DropDuplicates(key *Pubkey) error {
+func DropDuplicates(key *PrimaryKey) error {
 	err := dedup(key, nil)
 	if err != nil {
 		return err
@@ -27,7 +27,7 @@ func DropDuplicates(key *Pubkey) error {
 	return key.updateMD5()
 }
 
-func CollectDuplicates(key *Pubkey) error {
+func CollectDuplicates(key *PrimaryKey) error {
 	err := dedup(key, func(primary, _ packetNode) {
 		primary.packet().Count++
 	})
@@ -37,10 +37,10 @@ func CollectDuplicates(key *Pubkey) error {
 	return key.updateMD5()
 }
 
-func Merge(dst, src *Pubkey) error {
+func Merge(dst, src *PrimaryKey) error {
 	dst.UserIDs = append(dst.UserIDs, src.UserIDs...)
 	dst.UserAttributes = append(dst.UserAttributes, src.UserAttributes...)
-	dst.Subkeys = append(dst.Subkeys, src.Subkeys...)
+	dst.SubKeys = append(dst.SubKeys, src.SubKeys...)
 	dst.Others = append(dst.Others, src.Others...)
 	err := dedup(dst, func(primary, duplicate packetNode) {
 		primaryPacket := primary.packet()

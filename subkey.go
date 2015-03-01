@@ -25,12 +25,12 @@ import (
 	"gopkg.in/errgo.v1"
 )
 
-type Subkey struct {
-	publicKeyPacket
+type SubKey struct {
+	PublicKey
 }
 
 // contents implements the packetNode interface for sub-keys.
-func (subkey *Subkey) contents() []packetNode {
+func (subkey *SubKey) contents() []packetNode {
 	result := []packetNode{subkey}
 	for _, sig := range subkey.Signatures {
 		result = append(result, sig.contents()...)
@@ -41,7 +41,7 @@ func (subkey *Subkey) contents() []packetNode {
 	return result
 }
 
-func ParseSubkey(op *packet.OpaquePacket) (*Subkey, error) {
+func ParseSubKey(op *packet.OpaquePacket) (*SubKey, error) {
 	var buf bytes.Buffer
 	var err error
 
@@ -49,8 +49,8 @@ func ParseSubkey(op *packet.OpaquePacket) (*Subkey, error) {
 		return nil, errgo.Mask(err)
 		panic("unable to write internal buffer")
 	}
-	subkey := &Subkey{
-		publicKeyPacket: publicKeyPacket{
+	subkey := &SubKey{
+		PublicKey: PublicKey{
 			Packet: Packet{
 				Tag:    op.Tag,
 				Packet: buf.Bytes(),
@@ -63,32 +63,32 @@ func ParseSubkey(op *packet.OpaquePacket) (*Subkey, error) {
 	if parseErr != nil {
 		subkey.setUnsupported(op)
 	} else {
-		subkey.Valid = true
+		subkey.Parsed = true
 	}
 
 	return subkey, nil
 }
 
-func (subkey *Subkey) removeDuplicate(parent packetNode, dup packetNode) error {
-	pubkey, ok := parent.(*Pubkey)
+func (subkey *SubKey) removeDuplicate(parent packetNode, dup packetNode) error {
+	pubkey, ok := parent.(*PrimaryKey)
 	if !ok {
 		return errgo.Newf("invalid subkey parent: %+v", parent)
 	}
-	dupSubkey, ok := dup.(*Subkey)
+	dupSubKey, ok := dup.(*SubKey)
 	if !ok {
 		return errgo.Newf("invalid subkey duplicate: %+v", dup)
 	}
 
-	subkey.Signatures = append(subkey.Signatures, dupSubkey.Signatures...)
-	subkey.Others = append(subkey.Others, dupSubkey.Others...)
-	pubkey.Subkeys = subkeySlice(pubkey.Subkeys).without(dupSubkey)
+	subkey.Signatures = append(subkey.Signatures, dupSubKey.Signatures...)
+	subkey.Others = append(subkey.Others, dupSubKey.Others...)
+	pubkey.SubKeys = subkeySlice(pubkey.SubKeys).without(dupSubKey)
 	return nil
 }
 
-type subkeySlice []*Subkey
+type subkeySlice []*SubKey
 
-func (ss subkeySlice) without(target *Subkey) []*Subkey {
-	var result []*Subkey
+func (ss subkeySlice) without(target *SubKey) []*SubKey {
+	var result []*SubKey
 	for _, subkey := range ss {
 		if subkey != target {
 			result = append(result, subkey)
@@ -97,7 +97,7 @@ func (ss subkeySlice) without(target *Subkey) []*Subkey {
 	return result
 }
 
-func (subkey *Subkey) SelfSigs(pubkey *Pubkey) *SelfSigs {
+func (subkey *SubKey) SelfSigs(pubkey *PrimaryKey) *SelfSigs {
 	result := &SelfSigs{target: subkey}
 	for _, sig := range subkey.Signatures {
 		// Skip non-self-certifications.
@@ -105,18 +105,18 @@ func (subkey *Subkey) SelfSigs(pubkey *Pubkey) *SelfSigs {
 			continue
 		}
 		checkSig := &CheckSig{
-			Pubkey:    pubkey,
-			Signature: sig,
-			Error:     pubkey.verifyPublicKeySelfSig(&subkey.publicKeyPacket, sig),
+			PrimaryKey: pubkey,
+			Signature:  sig,
+			Error:      pubkey.verifyPublicKeySelfSig(&subkey.PublicKey, sig),
 		}
 		if checkSig.Error != nil {
 			result.Errors = append(result.Errors, checkSig)
 			continue
 		}
 		switch sig.SigType {
-		case 0x28: // packet.SigTypeSubkeyRevocation
+		case 0x28: // packet.SigTypeSubKeyRevocation
 			result.Revocations = append(result.Revocations, checkSig)
-		case 0x18: // packet.SigTypeSubkeyBinding
+		case 0x18: // packet.SigTypeSubKeyBinding
 			result.Certifications = append(result.Certifications, checkSig)
 			if !sig.Expiration.IsZero() {
 				result.Expirations = append(result.Expirations, checkSig)

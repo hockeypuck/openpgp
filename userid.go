@@ -55,7 +55,7 @@ func (uid *UserID) appendSignature(sig *Signature) {
 }
 
 func (uid *UserID) removeDuplicate(parent packetNode, dup packetNode) error {
-	pubkey, ok := parent.(*Pubkey)
+	pubkey, ok := parent.(*PrimaryKey)
 	if !ok {
 		return errgo.Newf("invalid uid parent: %+v", parent)
 	}
@@ -108,7 +108,7 @@ func ParseUserID(op *packet.OpaquePacket, parentID string) (*UserID, error) {
 	if err != nil {
 		return nil, errgo.Mask(err)
 	}
-	uid.Valid = true
+	uid.Parsed = true
 	return uid, nil
 }
 
@@ -147,7 +147,7 @@ func cleanUtf8(s string) string {
 	return string(runes)
 }
 
-func (uid *UserID) SelfSigs(pubkey *Pubkey) *SelfSigs {
+func (uid *UserID) SelfSigs(pubkey *PrimaryKey) *SelfSigs {
 	result := &SelfSigs{target: uid}
 	for _, sig := range uid.Signatures {
 		// Skip non-self-certifications.
@@ -155,9 +155,9 @@ func (uid *UserID) SelfSigs(pubkey *Pubkey) *SelfSigs {
 			continue
 		}
 		checkSig := &CheckSig{
-			Pubkey:    pubkey,
-			Signature: sig,
-			Error:     pubkey.verifyUserIDSelfSig(uid, sig),
+			PrimaryKey: pubkey,
+			Signature:  sig,
+			Error:      pubkey.verifyUserIDSelfSig(uid, sig),
 		}
 		if checkSig.Error != nil {
 			result.Errors = append(result.Errors, checkSig)

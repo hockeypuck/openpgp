@@ -30,18 +30,18 @@ func (s *TypesSuite) TestVisitor(c *gc.C) {
 	c.Assert(key.UserIDs, gc.HasLen, 1)
 	c.Assert(key.UserIDs[0].Signatures, gc.HasLen, 1)
 	c.Assert(key.UserIDs[0].Signatures[0], gc.NotNil)
-	c.Assert(key.Subkeys, gc.HasLen, 1)
-	c.Assert(key.Subkeys[0].Signatures, gc.HasLen, 1)
-	c.Assert(key.Subkeys[0].Signatures[0], gc.NotNil)
+	c.Assert(key.SubKeys, gc.HasLen, 1)
+	c.Assert(key.SubKeys[0].Signatures, gc.HasLen, 1)
+	c.Assert(key.SubKeys[0].Signatures[0], gc.NotNil)
 	var npub, nuid, nsub, nsig int
 	contents := key.contents()
 	for _, node := range contents {
 		switch p := node.(type) {
-		case *Pubkey:
+		case *PrimaryKey:
 			npub++
 		case *UserID:
 			nuid++
-		case *Subkey:
+		case *SubKey:
 			nsub++
 		case *Signature:
 			nsig++
@@ -61,7 +61,7 @@ func (s *TypesSuite) TestIterOpaque(c *gc.C) {
 	for _, tag := range []uint8{
 		2, 6, 13, 14} {
 		//P.PacketTypeSignature, P.PacketTypePublicKey,
-		//P.PacketTypeUserId, P.PacketTypePublicSubkey} {
+		//P.PacketTypeUserId, P.PacketTypePublicSubKey} {
 		hits[tag] = 0
 	}
 	for _, node := range key.contents() {
@@ -73,7 +73,7 @@ func (s *TypesSuite) TestIterOpaque(c *gc.C) {
 	c.Assert(1, gc.Equals, hits[13 /*P.PacketTypeUserId*/])
 	c.Assert(1, gc.Equals, len(key.UserIDs))
 	c.Assert(1, gc.Equals, len(key.UserIDs[0].Signatures))
-	c.Assert(1, gc.Equals, hits[14 /*P.PacketTypePublicSubkey*/])
-	c.Assert(1, gc.Equals, len(key.Subkeys[0].Signatures))
+	c.Assert(1, gc.Equals, hits[14 /*P.PacketTypePublicSubKey*/])
+	c.Assert(1, gc.Equals, len(key.SubKeys[0].Signatures))
 	c.Assert(4, gc.Equals, len(hits))
 }

@@ -26,9 +26,9 @@ var now = time.Now
 
 // CheckSig represents the result of checking a self-signature.
 type CheckSig struct {
-	Pubkey    *Pubkey
-	Signature *Signature
-	Error     error
+	PrimaryKey *PrimaryKey
+	Signature  *Signature
+	Error      error
 }
 
 // SelfSigs holds self-signatures on OpenPGP targets, which may be keys, user
@@ -125,7 +125,7 @@ func (s *SelfSigs) ValidSince() (time.Time, bool) {
 	if len(s.Revocations) > 0 {
 		return zeroTime, false
 	}
-	if pubkey, ok := s.target.(*Pubkey); ok {
+	if pubkey, ok := s.target.(*PrimaryKey); ok {
 		return pubkey.Creation, true
 	}
 	for _, checkSig := range s.Certifications {
