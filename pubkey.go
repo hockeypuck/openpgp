@@ -53,8 +53,8 @@ type PublicKey struct {
 	Others     []*Packet
 }
 
-func algoCode(algo int) string {
-	switch algo {
+func AlgorithmName(code int) string {
+	switch code {
 	case 1, 2, 3:
 		return "rsa"
 	case 16:
@@ -70,12 +70,12 @@ func algoCode(algo int) string {
 	case 22:
 		return "eddsa"
 	default:
-		return fmt.Sprintf("unk%d?", algo)
+		return fmt.Sprintf("unk(#%d)", code)
 	}
 }
 
 func (pk *PublicKey) QualifiedFingerprint() string {
-	return fmt.Sprintf("%s%d/%s", algoCode(pk.Algorithm), pk.BitLen, Reverse(pk.RFingerprint))
+	return fmt.Sprintf("%s%d/%s", AlgorithmName(pk.Algorithm), pk.BitLen, Reverse(pk.RFingerprint))
 }
 
 func (pk *PublicKey) ShortID() string {
