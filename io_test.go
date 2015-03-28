@@ -21,6 +21,8 @@ import (
 	"bytes"
 	"crypto/md5"
 	"io"
+	"io/ioutil"
+	"sort"
 	stdtesting "testing"
 
 	"golang.org/x/crypto/openpgp/armor"
@@ -52,6 +54,80 @@ func (s *SamplePacketSuite) TestSksDigest(c *gc.C) {
 	c.Assert(err, gc.IsNil)
 	c.Assert(key.ShortID(), gc.Equals, "ce353cf4")
 	c.Assert(md5, gc.Equals, "da84f40d830a7be2a3c0b7f2e146bfaa")
+}
+
+func (s *SamplePacketSuite) TestSksContextualDup(c *gc.C) {
+	f := testing.MustInput("sks_fail.asc")
+
+	block, err := armor.Decode(f)
+	c.Assert(err, gc.IsNil)
+	buf, err := ioutil.ReadAll(block.Body)
+	c.Assert(err, gc.IsNil)
+	err = f.Close()
+	c.Assert(err, gc.IsNil)
+
+	var kr *OpaqueKeyring
+	for opkr := range ReadOpaqueKeyrings(bytes.NewBuffer(buf)) {
+		c.Assert(kr, gc.IsNil)
+		kr = opkr
+	}
+
+	var refBuf bytes.Buffer
+	for _, op := range kr.Packets {
+		err = op.Serialize(&refBuf)
+		c.Assert(err, gc.IsNil)
+	}
+	c.Assert(buf, gc.DeepEquals, refBuf.Bytes())
+
+	pk, err := kr.Parse()
+	c.Assert(err, gc.IsNil)
+	digest1, err := SksDigest(pk, md5.New())
+	c.Assert(err, gc.IsNil)
+
+	err = DropDuplicates(pk)
+	c.Assert(err, gc.IsNil)
+	digest2, err := SksDigest(pk, md5.New())
+	c.Assert(err, gc.IsNil)
+
+	c.Check(digest1, gc.Equals, digest2)
+
+	//sort.Sort(opaquePacketSlice(kr.Packets))
+	for _, op := range kr.Packets {
+		c.Logf("%d %d %s", op.Tag, len(op.Contents), hexmd5(op.Contents))
+	}
+
+	c.Log("parse primary key")
+	key := MustInputAscKey("sks_fail2.asc")
+	dupDigest, err := SksDigest(key, md5.New())
+	c.Assert(err, gc.IsNil)
+	var packetsDup opaquePacketSlice
+	for _, node := range key.contents() {
+		op, err := node.packet().opaquePacket()
+		c.Assert(err, gc.IsNil)
+		packetsDup = append(packetsDup, op)
+	}
+	sort.Sort(packetsDup)
+	for _, op := range packetsDup {
+		c.Logf("%d %d %s", op.Tag, len(op.Contents), hexmd5(op.Contents))
+	}
+
+	c.Log("deduped primary key")
+	key = MustInputAscKey("sks_fail2.asc")
+	DropDuplicates(key)
+	dedupDigest, err := SksDigest(key, md5.New())
+	c.Assert(err, gc.IsNil)
+	var packetsDedup opaquePacketSlice
+	for _, node := range key.contents() {
+		op, err := node.packet().opaquePacket()
+		c.Assert(err, gc.IsNil)
+		packetsDedup = append(packetsDedup, op)
+	}
+	sort.Sort(packetsDedup)
+	for _, op := range packetsDedup {
+		c.Logf("%d %d %s", op.Tag, len(op.Contents), hexmd5(op.Contents))
+	}
+
+	c.Assert(dupDigest, gc.Equals, dedupDigest)
 }
 
 func (s *SamplePacketSuite) TestUatRtt(c *gc.C) {

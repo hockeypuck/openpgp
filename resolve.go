@@ -17,7 +17,12 @@
 
 package openpgp
 
-import "gopkg.in/errgo.v1"
+import (
+	"crypto/md5"
+	"encoding/hex"
+
+	"gopkg.in/errgo.v1"
+)
 
 func DropDuplicates(key *PrimaryKey) error {
 	err := dedup(key, nil)
@@ -55,11 +60,17 @@ func Merge(dst, src *PrimaryKey) error {
 	return dst.updateMD5()
 }
 
+func hexmd5(b []byte) string {
+	d := md5.Sum(b)
+	return hex.EncodeToString(d[:])
+}
+
 func dedup(root packetNode, handleDuplicate func(primary, duplicate packetNode)) error {
 	nodes := map[string]packetNode{}
 
 	for _, node := range root.contents() {
-		primary, ok := nodes[node.uuid()]
+		uuid := node.uuid() + "_" + hexmd5(node.packet().Packet)
+		primary, ok := nodes[uuid]
 		if ok {
 			err := primary.removeDuplicate(root, node)
 			if err != nil {
@@ -75,7 +86,7 @@ func dedup(root packetNode, handleDuplicate func(primary, duplicate packetNode))
 				handleDuplicate(primary, node)
 			}
 		} else {
-			nodes[node.uuid()] = node
+			nodes[uuid] = node
 		}
 	}
 	return nil
