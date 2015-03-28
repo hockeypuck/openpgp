@@ -91,13 +91,12 @@ func (s *SamplePacketSuite) TestSksContextualDup(c *gc.C) {
 
 	c.Check(digest1, gc.Equals, digest2)
 
-	//sort.Sort(opaquePacketSlice(kr.Packets))
 	for _, op := range kr.Packets {
 		c.Logf("%d %d %s", op.Tag, len(op.Contents), hexmd5(op.Contents))
 	}
 
 	c.Log("parse primary key")
-	key := MustInputAscKey("sks_fail2.asc")
+	key := MustInputAscKey("sks_fail.asc")
 	dupDigest, err := SksDigest(key, md5.New())
 	c.Assert(err, gc.IsNil)
 	var packetsDup opaquePacketSlice
@@ -112,7 +111,7 @@ func (s *SamplePacketSuite) TestSksContextualDup(c *gc.C) {
 	}
 
 	c.Log("deduped primary key")
-	key = MustInputAscKey("sks_fail2.asc")
+	key = MustInputAscKey("sks_fail.asc")
 	DropDuplicates(key)
 	dedupDigest, err := SksDigest(key, md5.New())
 	c.Assert(err, gc.IsNil)
