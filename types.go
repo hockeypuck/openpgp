@@ -19,7 +19,7 @@
 // intended to support storage, retrieval, and non-authoritative verification
 // of signed key material and certifications.
 //
-// import "gopkg.in/hockeypuck/openpgp.v0"
+// import "gopkg.in/hockeypuck/openpgp.v1"
 //
 
 package openpgp
