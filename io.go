@@ -201,7 +201,9 @@ func ReadOpaqueKeyrings(r io.Reader) OpaqueKeyringChan {
 				//packet.PacketTypeUserAttribute,
 				//packet.PacketTypePublicSubKey,
 				//packet.PacketTypeSignature
-				current.Packets = append(current.Packets, op)
+				if current != nil {
+					current.Packets = append(current.Packets, op)
+				}
 			}
 		}
 		if err == io.EOF && current != nil {

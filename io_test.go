@@ -251,3 +251,13 @@ func (s *SamplePacketSuite) TestMerge(c *gc.C) {
 	}
 	c.Assert(matchUID, gc.NotNil)
 }
+
+func (s *SamplePacketSuite) TestRevocationCert(c *gc.C) {
+	ch := MustReadArmorKeys(testing.MustInput("revok_cert.asc"))
+	count := 0
+	for readKey := range ch {
+		c.Assert(readKey.Error, gc.ErrorMatches, "primary public key not found")
+		count++
+	}
+	c.Assert(count, gc.Equals, 1)
+}
