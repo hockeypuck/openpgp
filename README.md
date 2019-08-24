@@ -3,6 +3,8 @@
 
 # openpgp
 
+__This package has been moved into https://github.com/hockeypuck/hockeypuck. Further contributions should be made there, this project has been archived.__
+
 Package `openpgp` provides OpenPGP packet processing for keyservers. It is
 intended to support verification of signed key material and certifications.
 
